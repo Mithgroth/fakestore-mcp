@@ -17,9 +17,16 @@ ruleType: agentRequested
 - Since this is a MCP server & MCP client solution, we will use MCP Typescript SDK: https://github.com/modelcontextprotocol/typescript-sdk
 - **IMPORTANT** We will be building in SMALL steps, NEVER attempt to take a giant leap and implement many changes at once.
 
+# Development Strategy: UI-First Approach
+- **Phase 1**: Build UI with direct FakeStore API integration for working functionality
+- **Phase 2**: Add MCP server layer on top to wrap the proven functionality
+- **Priority**: User experience and working product first, then abstraction layer
+- **Validation**: Each feature must work end-to-end before adding MCP wrapper
+
 # Technical Architecture Guidelines
 - **API Constraint**: ONLY use the Fake Store API (https://fakestoreapi.com/docs) - no other external APIs allowed
-- **MCP Implementation**: Create both server and client components using TypeScript SDK
+- **Initial Implementation**: Direct API calls to FakeStore API for immediate functionality
+- **MCP Layer**: Add MCP server/client wrapper after UI is complete and tested
 - **Next.js Structure**: Follow Next.js 13+ App Router conventions
 - **State Management**: Use React hooks and context for cart management
 - **Authentication**: Implement using Fake Store API's auth endpoints
@@ -27,9 +34,10 @@ ruleType: agentRequested
 
 # Development Approach
 - **Incremental Development**: Complete one feature at a time before moving to the next
-- **Feature Priority**: 1) Authentication, 2) Product listing, 3) Cart functionality, 4) MCP integration
-- **Testing**: Each feature should be manually tested before proceeding
+- **Feature Priority**: 1) Authentication (direct API), 2) Product listing (direct API), 3) Cart functionality (direct API), 4) MCP server wrapper, 5) MCP client integration
+- **Testing**: Each feature should be manually tested with direct API calls before MCP integration
 - **Documentation**: Keep implementation details clear for demo video creation
+- **UI Focus**: Build cart UI components and state management as primary focus area
 
 # Code Quality Standards
 - **TypeScript**: Use strict typing throughout
