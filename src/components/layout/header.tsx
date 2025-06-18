@@ -1,8 +1,9 @@
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/lib/auth-context'
+import { useScrollSpy } from '@/lib/scroll-spy-context'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -12,13 +13,11 @@ import { getCategoryInfo } from '@/lib/categories'
 
 export function Header() {
   const { user, logout } = useAuth()
-
-  // Category scroll spy logic
-  const [categoryGroups, setCategoryGroups] = useState<any[]>([])
-  const [activeCategory, setActiveCategory] = useState<string | null>(null)
-  const categoryRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
+  const { activeSection, scrollToSection } = useScrollSpy()
 
   // Fetch categories and icons
+  const [categoryGroups, setCategoryGroups] = useState<any[]>([])
+
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -26,41 +25,13 @@ export function Header() {
         if (!categoriesResponse.ok) throw new Error('Failed to fetch categories')
         const categories = await categoriesResponse.json()
         setCategoryGroups(categories.map((name: string) => getCategoryInfo(name)))
-        if (categories.length > 0) setActiveCategory(categories[0])
       } catch {}
     }
     fetchCategories()
   }, [])
 
-  // Scroll spy logic
-  useEffect(() => {
-    if (!categoryGroups.length) return
-    const handleScroll = () => {
-      let found = null
-      for (const group of categoryGroups) {
-        const el = document.getElementById(`category-${group.name.replace(/\s+/g, '-').toLowerCase()}`)
-        if (el) {
-          const rect = el.getBoundingClientRect()
-          if (rect.top <= 80 && rect.bottom > 80) {
-            found = group.name
-            break
-          }
-        }
-      }
-      if (found && found !== activeCategory) {
-        setActiveCategory(found)
-      }
-    }
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [categoryGroups, activeCategory])
-
   const handleCategoryClick = (name: string) => {
-    const el = document.getElementById(`category-${name.replace(/\s+/g, '-').toLowerCase()}`)
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      setActiveCategory(name)
-    }
+    scrollToSection(name)
   }
 
   return (
@@ -81,7 +52,7 @@ export function Header() {
                   key={category.name}
                   onClick={() => handleCategoryClick(category.name)}
                   className={`flex items-center gap-1 px-2 py-1 rounded-md border transition-colors whitespace-nowrap font-normal text-xs
-                    ${activeCategory === category.name ? 'bg-primary text-primary-foreground border-primary shadow' : 'bg-muted text-foreground border-muted-foreground/20 hover:bg-accent hover:text-accent-foreground'}`}
+                    ${activeSection === category.name ? 'bg-primary text-primary-foreground border-primary shadow' : 'bg-muted text-foreground border-muted-foreground/20 hover:bg-accent hover:text-accent-foreground'}`}
                   style={{ minWidth: 100 }}
                   type="button"
                 >

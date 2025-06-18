@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { AlertCircle } from 'lucide-react'
 import { getCategoryInfoLarge } from '@/lib/categories'
+import { useScrollSpy } from '@/lib/scroll-spy-context'
 
 interface Product {
   id: number
@@ -37,8 +38,9 @@ export default function Home() {
   const [categoryGroups, setCategoryGroups] = useState<CategoryGroup[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [activeCategory, setActiveCategory] = useState<string | null>(null)
+  const { registerSection, unregisterSection } = useScrollSpy()
   const categoryHeaderRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
+  const categoryContainerRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
 
   useEffect(() => {
     const fetchProductsByCategories = async () => {
@@ -73,10 +75,6 @@ export default function Home() {
         }
         
         setCategoryGroups(categoryGroupsData)
-        // Set initial active category
-        if (categoryGroupsData.length > 0) {
-          setActiveCategory(categoryGroupsData[0].name)
-        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load products')
       } finally {
@@ -87,28 +85,21 @@ export default function Home() {
     fetchProductsByCategories()
   }, [])
 
-  // Scroll spy logic (use header refs)
+  // Register sections with ScrollSpy context
   useEffect(() => {
-    if (!categoryGroups.length) return
-    const handleScroll = () => {
-      let found = null
-      for (const group of categoryGroups) {
-        const headerRef = categoryHeaderRefs.current[group.name]
-        if (headerRef) {
-          const rect = headerRef.getBoundingClientRect()
-          if (rect.top <= 80 && rect.bottom > 80) {
-            found = group.name
-            break
-          }
-        }
+    categoryGroups.forEach(group => {
+      const containerRef = categoryContainerRefs.current[group.name]
+      if (containerRef) {
+        registerSection(group.name, containerRef)
       }
-      if (found && found !== activeCategory) {
-        setActiveCategory(found)
-      }
+    })
+
+    return () => {
+      categoryGroups.forEach(group => {
+        unregisterSection(group.name)
+      })
     }
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [categoryGroups, activeCategory])
+  }, [categoryGroups, registerSection, unregisterSection])
 
   const handleAddToCart = (product: Product) => {
     // For now, just show an alert
@@ -168,6 +159,7 @@ export default function Home() {
               key={categoryGroup.name}
               className="scroll-mt-20 space-y-6"
               id={`category-${categoryGroup.name.replace(/\s+/g, '-').toLowerCase()}`}
+              ref={el => { categoryContainerRefs.current[categoryGroup.name] = el; }}
             >
               <CategoryHeader
                 ref={el => { categoryHeaderRefs.current[categoryGroup.name] = el; }}

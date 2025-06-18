@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import '@/styles/globals.css'
 import React from 'react'
 import { AuthProvider } from '@/lib/auth-context'
+import { ScrollSpyProvider } from '@/lib/scroll-spy-context'
 import { Header } from '@/components/layout/header'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -21,12 +22,14 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <AuthProvider>
-          <div className="min-h-screen bg-background">
-            <Header />
-            <main>
-              {children}
-            </main>
-          </div>
+          <ScrollSpyProvider>
+            <div className="min-h-screen bg-background">
+              <Header />
+              <main>
+                {children}
+              </main>
+            </div>
+          </ScrollSpyProvider>
         </AuthProvider>
       </body>
     </html>
