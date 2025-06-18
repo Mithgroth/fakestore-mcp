@@ -210,6 +210,9 @@ export default function Home() {
 
       {/* Demo Info Dialog - Floating Button */}
       <DemoInfoDialog />
+      
+      {/* Footer - provides offset for scroll spy */}
+      <Footer />
     </div>
   )
 } 
