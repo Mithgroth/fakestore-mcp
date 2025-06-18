@@ -12,6 +12,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { AlertCircle } from 'lucide-react'
 import { getCategoryInfoLarge } from '@/lib/categories'
 import { useScrollSpy } from '@/lib/scroll-spy-context'
+import { SortOption } from '@/components/products/product-sort'
+import { sortProducts } from '@/lib/product-utils'
 
 interface Product {
   id: number
@@ -31,6 +33,8 @@ interface CategoryGroup {
   displayName: string
   icon: React.ReactNode
   products: Product[]
+  originalProducts: Product[]
+  sortOption: SortOption
 }
 
 export default function Home() {
@@ -66,11 +70,15 @@ export default function Home() {
           const products = await productsResponse.json()
           
           const categoryInfo = getCategoryInfoLarge(category)
+          // Sort products by rating descending by default
+          const sortedProducts = sortProducts(products, 'rating-desc')
           categoryGroupsData.push({
             name: category,
             displayName: categoryInfo.displayName,
             icon: categoryInfo.icon,
-            products
+            products: sortedProducts,
+            originalProducts: products,
+            sortOption: 'rating-desc'
           })
         }
         
@@ -100,6 +108,22 @@ export default function Home() {
       })
     }
   }, [categoryGroups, registerSection, unregisterSection])
+
+  const handleSortChange = (categoryName: string, sortOption: SortOption) => {
+    setCategoryGroups(prevGroups =>
+      prevGroups.map(group => {
+        if (group.name === categoryName) {
+          const sortedProducts = sortProducts(group.originalProducts, sortOption)
+          return {
+            ...group,
+            products: sortedProducts,
+            sortOption
+          }
+        }
+        return group
+      })
+    )
+  }
 
   const handleAddToCart = (product: Product) => {
     // For now, just show an alert
@@ -166,6 +190,8 @@ export default function Home() {
                 icon={categoryGroup.icon}
                 displayName={categoryGroup.displayName}
                 count={categoryGroup.products.length}
+                sortValue={categoryGroup.sortOption}
+                onSortChange={(sortOption) => handleSortChange(categoryGroup.name, sortOption)}
               />
               <ProductGrid products={categoryGroup.products} onAddToCart={handleAddToCart} />
             </div>
