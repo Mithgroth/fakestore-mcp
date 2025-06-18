@@ -1,0 +1,35 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+---
+description: Original job application assignment requirements for FakeStore MCP project - must never be changed
+globs: 
+alwaysApply: true
+ruleType: agentRequested
+---
+Below are the requirements of our assignment:
+
+Project Overview
+Create an MCP (Model Context Protocol) server and a simple web-based MCP client using the available functionality from the Fake Store API.
+API Documentation: https://fakestoreapi.com/docs 
+
+Required Capabilities
+✓ Login - User authentication functionality
+✓ Add item to cart - Shopping cart item addition
+✓ Remove item from cart - Shopping cart item removal
+✓ Display current cart, itemised - Detailed cart view with item breakdown
+✓ Bonus functionality - Additional features of your choice
+
+Deliverables
+1. GitHub Repository
+Submit a complete GitHub repository containing all your source code, documentation, and setup instructions.
+2. Demo Video
+Create a short demonstration video (1-2 minutes) showcasing the functionality with clear explanations of features and implementation.
+
+Technical Requirements
+Language & Libraries: You may use any programming language and libraries of your choice.
+AI Tool Usage: Feel free to use any AI tools to assist with development, provided you understand the resulting code.
+Code Understanding: Ensure you can explain and understand all code in your implementation.
+Important Constraint: Do not use any APIs other than the Fake Store API (https://fakestoreapi.com/docs) in your implementation.

@@ -1,0 +1,39 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+---
+description: Core project guidelines for FakeStore MCP implementation including architecture, development approach, and quality standards
+globs: 
+alwaysApply: true
+ruleType: agentRequested
+---
+
+# Core Project Requirements
+- This project aims to complete [assignment.mdc](mdc:.cursor/rules/assignment.mdc), you ALWAYS have to follow the rules there.
+- Build with deployment in mind. We need this deployed, so we can showcase it. The easiest option is Vercel.
+- Since we have Vercel in mind, we will use Next.js.
+- Since this is a MCP server & MCP client solution, we will use MCP Typescript SDK: https://github.com/modelcontextprotocol/typescript-sdk
+- **IMPORTANT** We will be building in SMALL steps, NEVER attempt to take a giant leap and implement many changes at once.
+
+# Technical Architecture Guidelines
+- **API Constraint**: ONLY use the Fake Store API (https://fakestoreapi.com/docs) - no other external APIs allowed
+- **MCP Implementation**: Create both server and client components using TypeScript SDK
+- **Next.js Structure**: Follow Next.js 13+ App Router conventions
+- **State Management**: Use React hooks and context for cart management
+- **Authentication**: Implement using Fake Store API's auth endpoints
+- **Deployment**: Structure for easy Vercel deployment with proper environment variables
+
+# Development Approach
+- **Incremental Development**: Complete one feature at a time before moving to the next
+- **Feature Priority**: 1) Authentication, 2) Product listing, 3) Cart functionality, 4) MCP integration
+- **Testing**: Each feature should be manually tested before proceeding
+- **Documentation**: Keep implementation details clear for demo video creation
+
+# Code Quality Standards
+- **TypeScript**: Use strict typing throughout
+- **Error Handling**: Implement proper error boundaries and API error handling
+- **UI/UX**: Create clean, modern interface suitable for demonstration
+- **Performance**: Optimize for production deployment
+- **Security**: Follow Next.js security best practices

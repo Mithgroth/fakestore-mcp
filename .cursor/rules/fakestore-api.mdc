@@ -1,0 +1,61 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+---
+description: Fake Store API integration constraints, available endpoints, implementation patterns, and data transformation guidelines
+globs: 
+alwaysApply: true
+ruleType: agentRequested
+---
+
+# API Constraint (CRITICAL)
+**ONLY use the Fake Store API (https://fakestoreapi.com/docs) - NO other external APIs allowed**
+This is a hard requirement from [assignment.mdc](mdc:.cursor/rules/assignment.mdc)
+
+# Available Endpoints
+## Products
+- `GET /products` - Get all products
+- `GET /products/{id}` - Get single product
+- `GET /products/categories` - Get all categories
+- `GET /products/category/{category}` - Get products by category
+
+## Carts
+- `GET /carts` - Get all carts
+- `GET /carts/{id}` - Get single cart
+- `POST /carts` - Add new cart
+- `PUT /carts/{id}` - Update cart
+- `DELETE /carts/{id}` - Delete cart
+- `GET /carts/user/{userId}` - Get user carts
+
+## Users & Auth
+- `GET /users` - Get all users
+- `GET /users/{id}` - Get single user
+- `POST /users` - Add new user
+- `POST /auth/login` - User login
+
+# Implementation Patterns
+## Authentication Flow
+1. Use `POST /auth/login` with username/password
+2. Store returned token for subsequent requests
+3. Handle token expiration gracefully
+4. Provide clear login/logout UI
+
+## Cart Management
+1. **Cart Creation**: Use `POST /carts` to create new cart for user
+2. **Cart Updates**: Use `PUT /carts/{id}` to modify cart contents
+3. **Cart Display**: Fetch cart data and join with product details
+4. **User Association**: Link carts to authenticated user
+
+## Error Handling
+- **Network Errors**: Graceful degradation with retry logic
+- **API Errors**: Display meaningful error messages
+- **Authentication**: Redirect to login on auth failures
+- **Validation**: Client-side validation before API calls
+
+# Data Transformation
+- **Product Display**: Transform API data for UI components
+- **Cart Items**: Combine cart data with product details
+- **User Session**: Manage authentication state
+- **Price Formatting**: Consistent currency display

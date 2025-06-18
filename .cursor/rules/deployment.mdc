@@ -1,0 +1,58 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+---
+description: Deployment strategy for Vercel, demo video preparation requirements, documentation standards, and quality checklist for job application submission
+globs: 
+alwaysApply: true
+ruleType: agentRequested
+---
+
+# Deployment Requirements
+Based on [assignment.mdc](mdc:.cursor/rules/assignment.mdc), we need:
+1. **GitHub Repository** - Complete source code with documentation
+2. **Demo Video** - 1-2 minute showcase of functionality
+
+# Vercel Deployment Setup
+- **Next.js Configuration**: Ensure `next.config.js` is properly configured
+- **Environment Variables**: Set up proper env vars in Vercel dashboard
+- **Build Optimization**: Optimize bundle size for production
+- **Static Assets**: Properly handle public assets and images
+- **API Routes**: Ensure API routes work in serverless environment
+
+# MCP Server Deployment
+- **Server Location**: Consider where MCP server will run in production
+- **Communication**: Ensure MCP client can reach server in deployed environment
+- **Process Management**: Handle MCP server lifecycle in deployment
+- **Logging**: Implement proper logging for debugging deployed application
+
+# Demo Video Preparation
+## Required Demonstrations
+1. **Login Functionality** - Show user authentication process
+2. **Product Browsing** - Display product catalog
+3. **Add to Cart** - Demonstrate adding items to cart
+4. **Remove from Cart** - Show removing items from cart
+5. **Cart Display** - Show detailed, itemized cart view
+6. **Bonus Features** - Showcase additional implemented features
+
+## Technical Demonstrations
+- **MCP Integration** - Show how MCP tools are being used
+- **API Integration** - Demonstrate Fake Store API usage
+- **Error Handling** - Show graceful error scenarios
+- **Responsive Design** - Show mobile/desktop compatibility
+
+# Documentation Requirements
+- **README.md** - Setup instructions and project overview
+- **API Documentation** - How MCP tools work
+- **Deployment Guide** - Steps to deploy the application
+- **Demo Script** - Outline for the demo video
+
+# Quality Checklist
+- [ ] All assignment requirements implemented
+- [ ] Application deployed and accessible
+- [ ] Demo video created and uploaded
+- [ ] Repository is public and well-documented
+- [ ] Code is clean and commented
+- [ ] No hardcoded credentials or sensitive data

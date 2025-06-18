@@ -1,0 +1,53 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+---
+description: Next.js project structure conventions, file organization, naming patterns, and best practices for the FakeStore MCP application
+globs: 
+alwaysApply: true
+ruleType: agentRequested
+---
+
+# Project Structure
+```
+fakestore-mcp/
+├── src/
+│   ├── app/                 # Next.js App Router
+│   │   ├── layout.tsx       # Root layout
+│   │   ├── page.tsx         # Home page
+│   │   ├── login/           # Auth pages
+│   │   └── cart/            # Cart pages
+│   ├── components/          # React components
+│   │   ├── ui/              # Reusable UI components
+│   │   ├── cart/            # Cart-specific components
+│   │   └── auth/            # Auth-specific components
+│   ├── lib/                 # Utilities and configs
+│   │   ├── mcp/             # MCP client/server code
+│   │   ├── api/             # API utilities
+│   │   └── types.ts         # TypeScript types
+│   └── styles/              # Global styles
+├── mcp-server/              # MCP server implementation
+└── public/                  # Static assets
+```
+
+# File Naming Conventions
+- **Components**: PascalCase (e.g., `ProductCard.tsx`)
+- **Pages**: lowercase with hyphens (e.g., `product-details`)
+- **Utilities**: camelCase (e.g., `apiClient.ts`)
+- **Types**: PascalCase interfaces/types (e.g., `Product`, `CartItem`)
+
+# Next.js Best Practices
+- **App Router**: Use app directory structure for routing
+- **Server Components**: Default to server components, use client components only when needed
+- **Loading States**: Implement loading.tsx files for better UX
+- **Error Handling**: Use error.tsx files for error boundaries
+- **Metadata**: Proper SEO metadata for demo purposes
+- **Environment Variables**: Use `.env.local` for API configurations
+
+# Component Organization
+- **Page Components**: Keep minimal, delegate to smaller components
+- **Feature Components**: Group related components in feature folders
+- **Shared Components**: Reusable UI components in `components/ui/`
+- **Custom Hooks**: Extract logic into custom hooks where appropriate

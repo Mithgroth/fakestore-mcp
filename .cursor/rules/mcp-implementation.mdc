@@ -1,0 +1,38 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+---
+description: MCP (Model Context Protocol) server and client implementation patterns, tool definitions, and integration guidelines for the FakeStore project
+globs: 
+alwaysApply: true
+ruleType: agentRequested
+---
+
+# MCP Server Implementation
+- **Server Structure**: Create MCP server that exposes Fake Store API functionality as tools
+- **Tool Definitions**: Implement tools for login, cart operations, product retrieval
+- **Error Handling**: Proper MCP error responses for API failures
+- **Type Safety**: Use TypeScript for all MCP tool definitions and handlers
+
+# MCP Client Implementation
+- **Client Setup**: Initialize MCP client to communicate with local server
+- **Tool Integration**: Create React components that call MCP tools
+- **State Synchronization**: Keep UI state in sync with MCP tool results
+- **User Experience**: Seamless integration where MCP tools feel like native app features
+
+# Required MCP Tools
+Based on [assignment.mdc](mdc:.cursor/rules/assignment.mdc) requirements:
+- `login` - User authentication with Fake Store API
+- `addToCart` - Add product to user's cart
+- `removeFromCart` - Remove product from user's cart
+- `getCart` - Retrieve current cart with itemized details
+- `getProducts` - Fetch product catalog
+- `getProduct` - Get single product details
+
+# MCP Tool Patterns
+- **Input Validation**: Validate all tool parameters before API calls
+- **Response Formatting**: Consistent response structure across all tools
+- **Error Propagation**: Meaningful error messages for UI display
+- **Authentication**: Handle auth tokens across tool calls
