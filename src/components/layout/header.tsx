@@ -10,10 +10,12 @@ import { Badge } from '@/components/ui/badge'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { ShoppingCart, User, LogOut, Menu, Store } from 'lucide-react'
 import { getCategoryInfo } from '@/lib/categories'
+import { LoginModal } from '@/components/auth/login-modal'
 
 export function Header() {
   const { user, logout } = useAuth()
   const { activeSection, scrollToSection } = useScrollSpy()
+  const [loginModalOpen, setLoginModalOpen] = useState(false)
 
   // Fetch categories and icons
   const [categoryGroups, setCategoryGroups] = useState<any[]>([])
@@ -91,12 +93,15 @@ export function Header() {
             </div>
           ) : (
             <div className="flex items-center space-x-2">
-              <Link href="/login">
-                <Button variant="outline" size="sm" className="text-sm">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="text-sm"
+                onClick={() => setLoginModalOpen(true)}
+              >
                   <User className="h-4 w-4 mr-2" />
                   Login
                 </Button>
-              </Link>
             </div>
           )}
 
@@ -121,6 +126,9 @@ export function Header() {
           </Sheet>
         </div>
       </div>
+      
+      {/* Login Modal */}
+      <LoginModal open={loginModalOpen} onOpenChange={setLoginModalOpen} />
     </header>
   )
 } 

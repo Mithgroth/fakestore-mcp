@@ -53,7 +53,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const data = await response.json()
         localStorage.setItem('fakestore-token', data.token)
         
-        // Mock user data (FakeStore API doesn't return user info on login)
+        // Fetch all users to find the logged-in user details
+        try {
+          const usersResponse = await fetch('https://fakestoreapi.com/users')
+          if (usersResponse.ok) {
+            const users = await usersResponse.json()
+            const loggedInUser = users.find((u: any) => u.username === username)
+            
+            if (loggedInUser) {
+              const user: User = {
+                id: loggedInUser.id,
+                username: loggedInUser.username,
+                email: loggedInUser.email,
+                firstName: loggedInUser.name.firstname,
+                lastName: loggedInUser.name.lastname
+              }
+              setUser(user)
+              return true
+            }
+          }
+        } catch (userError) {
+          console.warn('Could not fetch user details, using fallback')
+        }
+        
+        // Fallback to mock user data if user details fetch fails
         const mockUser: User = {
           id: 1,
           username,
