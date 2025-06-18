@@ -52,7 +52,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
           <Badge variant="secondary" className="text-xs">
             {product.category}
           </Badge>
-        </div>latest nextjs version 
+        </div>
         
         <CardDescription className="text-xs text-muted-foreground mb-3 line-clamp-3 flex-1">
           {truncatedDescription}
