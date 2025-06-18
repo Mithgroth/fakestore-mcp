@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/lib/auth-context'
 import { Button } from '@/components/ui/button'
@@ -8,9 +8,60 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { ShoppingCart, User, LogOut, Menu, Store } from 'lucide-react'
+import { getCategoryInfo } from '@/lib/categories'
 
 export function Header() {
   const { user, logout } = useAuth()
+
+  // Category scroll spy logic
+  const [categoryGroups, setCategoryGroups] = useState<any[]>([])
+  const [activeCategory, setActiveCategory] = useState<string | null>(null)
+  const categoryRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
+
+  // Fetch categories and icons
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const categoriesResponse = await fetch('https://fakestoreapi.com/products/categories')
+        if (!categoriesResponse.ok) throw new Error('Failed to fetch categories')
+        const categories = await categoriesResponse.json()
+        setCategoryGroups(categories.map((name: string) => getCategoryInfo(name)))
+        if (categories.length > 0) setActiveCategory(categories[0])
+      } catch {}
+    }
+    fetchCategories()
+  }, [])
+
+  // Scroll spy logic
+  useEffect(() => {
+    if (!categoryGroups.length) return
+    const handleScroll = () => {
+      let found = null
+      for (const group of categoryGroups) {
+        const el = document.getElementById(`category-${group.name.replace(/\s+/g, '-').toLowerCase()}`)
+        if (el) {
+          const rect = el.getBoundingClientRect()
+          if (rect.top <= 80 && rect.bottom > 80) {
+            found = group.name
+            break
+          }
+        }
+      }
+      if (found && found !== activeCategory) {
+        setActiveCategory(found)
+      }
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [categoryGroups, activeCategory])
+
+  const handleCategoryClick = (name: string) => {
+    const el = document.getElementById(`category-${name.replace(/\s+/g, '-').toLowerCase()}`)
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      setActiveCategory(name)
+    }
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -20,6 +71,27 @@ export function Header() {
           <Store className="h-6 w-6 text-primary" />
           <span className="font-bold text-xl">FakeStore</span>
         </Link>
+
+        {/* Category Buttons Bar - Centered */}
+        <div className="flex-1 flex justify-center">
+          {categoryGroups.length > 0 && (
+            <div className="flex gap-2 overflow-x-auto scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent">
+              {categoryGroups.map((category) => (
+                <button
+                  key={category.name}
+                  onClick={() => handleCategoryClick(category.name)}
+                  className={`flex items-center gap-1 px-2 py-1 rounded-md border transition-colors whitespace-nowrap font-normal text-xs
+                    ${activeCategory === category.name ? 'bg-primary text-primary-foreground border-primary shadow' : 'bg-muted text-foreground border-muted-foreground/20 hover:bg-accent hover:text-accent-foreground'}`}
+                  style={{ minWidth: 100 }}
+                  type="button"
+                >
+                  {React.cloneElement(category.icon, { className: 'h-4 w-4' })}
+                  <span>{category.displayName}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* User Actions */}
         <div className="flex items-center space-x-3">

@@ -23,14 +23,22 @@ interface Product {
 interface ProductGridProps {
   limit?: number
   category?: string
+  products?: Product[]
+  onAddToCart?: (product: Product) => void
 }
 
-export function ProductGrid({ limit = 20, category }: ProductGridProps) {
-  const [products, setProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true)
+export function ProductGrid({ limit = 20, category, products: propProducts, onAddToCart }: ProductGridProps) {
+  const [products, setProducts] = useState<Product[]>(propProducts || [])
+  const [loading, setLoading] = useState<boolean>(propProducts ? false : true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    if (propProducts) {
+      setProducts(propProducts)
+      setLoading(false)
+      setError(null)
+      return
+    }
     const fetchProducts = async () => {
       try {
         setLoading(true)
@@ -59,12 +67,14 @@ export function ProductGrid({ limit = 20, category }: ProductGridProps) {
     }
 
     fetchProducts()
-  }, [limit, category])
+  }, [limit, category, propProducts])
 
-  const handleAddToCart = (product: Product) => {
-    // For now, just show an alert
-    // Later we'll integrate with cart context
+  const handleAddToCartInternal = (product: Product) => {
+    if (onAddToCart) {
+      onAddToCart(product)
+    } else {
     alert(`Added "${product.title}" to cart!`)
+    }
   }
 
   if (error) {
@@ -107,7 +117,7 @@ export function ProductGrid({ limit = 20, category }: ProductGridProps) {
             <ProductCard
               key={product.id}
               product={product}
-              onAddToCart={handleAddToCart}
+              onAddToCart={handleAddToCartInternal}
             />
           ))}
         </div>

@@ -1,13 +1,16 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { ProductCard } from '@/components/products/product-card'
+import React, { useState, useEffect, useRef } from 'react'
+import { ProductGrid } from '@/components/products/product-grid'
 import { DemoInfoDialog } from '@/components/layout/demo-info-dialog'
+import { CategoryHeader } from '@/components/products/category-header'
 import { useAuth } from '@/lib/auth-context'
+import { Footer } from '@/components/layout/footer'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { AlertCircle, Shirt, Gem, Smartphone, Mars, Venus } from 'lucide-react'
+import { AlertCircle } from 'lucide-react'
+import { getCategoryInfoLarge } from '@/lib/categories'
 
 interface Product {
   id: number
@@ -29,52 +32,13 @@ interface CategoryGroup {
   products: Product[]
 }
 
-// Function to get category icon and display name
-const getCategoryInfo = (category: string) => {
-  switch (category.toLowerCase()) {
-    case "men's clothing":
-      return {
-        displayName: "Men's Clothing",
-        icon: (
-          <div className="flex items-center gap-2">
-            <Mars className="h-5 w-5" style={{ color: '#0066CC' }} />
-            <Shirt className="h-5 w-5" />
-          </div>
-        )
-      }
-    case "women's clothing":
-      return {
-        displayName: "Women's Clothing",
-        icon: (
-          <div className="flex items-center gap-2">
-            <Venus className="h-5 w-5" style={{ color: '#FF69B4' }} />
-            <Shirt className="h-5 w-5" />
-          </div>
-        )
-      }
-    case "jewelery":
-      return {
-        displayName: "Jewelry",
-        icon: <Gem className="h-5 w-5" />
-      }
-    case "electronics":
-      return {
-        displayName: "Electronics",
-        icon: <Smartphone className="h-5 w-5" />
-      }
-    default:
-      return {
-        displayName: category,
-        icon: <Shirt className="h-5 w-5" />
-      }
-  }
-}
-
 export default function Home() {
   const { user } = useAuth()
   const [categoryGroups, setCategoryGroups] = useState<CategoryGroup[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [activeCategory, setActiveCategory] = useState<string | null>(null)
+  const categoryHeaderRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
 
   useEffect(() => {
     const fetchProductsByCategories = async () => {
@@ -99,7 +63,7 @@ export default function Home() {
           }
           const products = await productsResponse.json()
           
-          const categoryInfo = getCategoryInfo(category)
+          const categoryInfo = getCategoryInfoLarge(category)
           categoryGroupsData.push({
             name: category,
             displayName: categoryInfo.displayName,
@@ -109,6 +73,10 @@ export default function Home() {
         }
         
         setCategoryGroups(categoryGroupsData)
+        // Set initial active category
+        if (categoryGroupsData.length > 0) {
+          setActiveCategory(categoryGroupsData[0].name)
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load products')
       } finally {
@@ -118,6 +86,29 @@ export default function Home() {
 
     fetchProductsByCategories()
   }, [])
+
+  // Scroll spy logic (use header refs)
+  useEffect(() => {
+    if (!categoryGroups.length) return
+    const handleScroll = () => {
+      let found = null
+      for (const group of categoryGroups) {
+        const headerRef = categoryHeaderRefs.current[group.name]
+        if (headerRef) {
+          const rect = headerRef.getBoundingClientRect()
+          if (rect.top <= 80 && rect.bottom > 80) {
+            found = group.name
+            break
+          }
+        }
+      }
+      if (found && found !== activeCategory) {
+        setActiveCategory(found)
+      }
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [categoryGroups, activeCategory])
 
   const handleAddToCart = (product: Product) => {
     // For now, just show an alert
@@ -169,49 +160,34 @@ export default function Home() {
           ))}
         </div>
       )}
-
-      {/* Categories with Products */}
+      {/* Categories */}
       {!loading && categoryGroups.length > 0 && (
         <div className="space-y-12">
           {categoryGroups.map((categoryGroup) => (
-            <div key={categoryGroup.name} className="space-y-6">
-              {/* Category Header */}
-              <div className="flex items-center gap-3 border-b pb-3">
-                {categoryGroup.icon}
-                <h2 className="text-xl font-semibold tracking-tight">
-                  {categoryGroup.displayName}
-                </h2>
-                <span className="text-sm text-muted-foreground ml-auto">
-                  {categoryGroup.products.length} {categoryGroup.products.length === 1 ? 'item' : 'items'}
-                </span>
-              </div>
-              
-              {/* Products Grid for this Category */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {categoryGroup.products.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    onAddToCart={handleAddToCart}
-                  />
-                ))}
-              </div>
+            <div
+              key={categoryGroup.name}
+              className="scroll-mt-20 space-y-6"
+              id={`category-${categoryGroup.name.replace(/\s+/g, '-').toLowerCase()}`}
+            >
+              <CategoryHeader
+                ref={el => { categoryHeaderRefs.current[categoryGroup.name] = el; }}
+                icon={categoryGroup.icon}
+                displayName={categoryGroup.displayName}
+                count={categoryGroup.products.length}
+              />
+              <ProductGrid products={categoryGroup.products} onAddToCart={handleAddToCart} />
             </div>
           ))}
         </div>
       )}
-
-      {/* Empty State */}
+      
       {!loading && categoryGroups.length === 0 && (
         <div className="text-center py-12">
           <p className="text-muted-foreground">No products found.</p>
         </div>
       )}
-
-      {/* Demo Info Dialog - Floating Button */}
-      <DemoInfoDialog />
       
-      {/* Footer - provides offset for scroll spy */}
+      <DemoInfoDialog />      
       <Footer />
     </div>
   )

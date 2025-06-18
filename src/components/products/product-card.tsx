@@ -4,8 +4,8 @@ import React from 'react'
 import Image from 'next/image'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Star, ShoppingCart, Plus, Shirt, Gem, Smartphone, Mars, Venus } from 'lucide-react'
+import { Star, ShoppingCart, Plus } from 'lucide-react'
+import { getCategoryInfoSmall } from '@/lib/categories'
 
 interface Product {
   id: number
@@ -25,36 +25,12 @@ interface ProductCardProps {
   onAddToCart?: (product: Product) => void
 }
 
-// Function to get category icon
-const getCategoryIcon = (category: string) => {
-  switch (category.toLowerCase()) {
-    case "men's clothing":
-      return (
-        <div className="flex items-center gap-1">
-          <Mars className="h-3 w-3" style={{ color: '#0066CC' }} />
-          <Shirt className="h-3 w-3" />
-        </div>
-      )
-    case "women's clothing":
-      return (
-        <div className="flex items-center gap-1">
-          <Venus className="h-3 w-3" style={{ color: '#FF69B4' }} />
-          <Shirt className="h-3 w-3" />
-        </div>
-      )
-    case "jewelery":
-      return <Gem className="h-4 w-4" />
-    case "electronics":
-      return <Smartphone className="h-4 w-4" />
-    default:
-      return <Shirt className="h-4 w-4" />
-  }
-}
-
 export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const truncatedDescription = product.description.length > 100 
     ? product.description.substring(0, 100) + '...'
     : product.description
+
+  const categoryInfo = getCategoryInfoSmall(product.category)
 
   return (
     <Card className="h-full flex flex-col hover:shadow-lg transition-shadow duration-300">
@@ -85,7 +61,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
           {/* Category Overlay - Top Right */}
           <div className="absolute top-0 right-0 bg-white/90 rounded-bl-full px-3 py-2">
             <div className="flex items-center justify-center text-gray-700">
-              {getCategoryIcon(product.category)}
+              {categoryInfo.icon}
             </div>
           </div>
         </div>
