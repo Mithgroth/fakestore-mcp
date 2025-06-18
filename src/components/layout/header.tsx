@@ -14,22 +14,12 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between px-4">
+      <div className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* Logo */}
         <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
           <Store className="h-6 w-6 text-primary" />
           <span className="font-bold text-xl">FakeStore</span>
         </Link>
-
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-6">
-          <Link href="/" className="text-sm font-medium transition-colors hover:text-primary">
-            Products
-          </Link>
-          <Link href="/categories" className="text-sm font-medium transition-colors hover:text-primary">
-            Categories
-          </Link>
-        </nav>
 
         {/* User Actions */}
         <div className="flex items-center space-x-3">
@@ -82,17 +72,7 @@ export function Header() {
                 </SheetTitle>
               </SheetHeader>
               <div className="mt-6 space-y-4">
-                <Link href="/" className="block text-sm font-medium py-2 hover:text-primary">
-                  Products
-                </Link>
-                <Link href="/categories" className="block text-sm font-medium py-2 hover:text-primary">
-                  Categories
-                </Link>
-                {!user && (
-                  <Link href="/login" className="block text-sm font-medium py-2 hover:text-primary">
-                    Login
-                  </Link>
-                )}
+                {/* No navigation links needed */}
               </div>
             </SheetContent>
           </Sheet>
