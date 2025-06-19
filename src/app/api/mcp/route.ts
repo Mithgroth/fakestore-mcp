@@ -161,4 +161,6 @@ export async function POST(req: NextRequest) {
 
 export async function GET() {
   return NextResponse.json({ success: false, error: 'GET not implemented' }, { status: 405 });
-} 
+}
+
+export { createServer, sessions }; 
