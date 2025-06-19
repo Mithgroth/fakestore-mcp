@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { Product } from '@/lib/types'
+import { useAuth } from '@/lib/auth-context'
 
 interface CartItem {
   product: Product
@@ -22,6 +23,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined)
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([])
+  const { user } = useAuth()
 
   // Load from localStorage
   useEffect(() => {
@@ -39,6 +41,43 @@ export function CartProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('cart', JSON.stringify(items))
     } catch {}
   }, [items])
+
+  // Sync with server cart on login/logout
+  useEffect(() => {
+    // If no user, clear local cart
+    if (!user) {
+      setItems([])
+      return
+    }
+    // Fetch latest cart for logged-in user
+    const fetchCart = async () => {
+      try {
+        const res = await fetch(`https://fakestoreapi.com/carts/user/${user.id}`)
+        if (!res.ok) return
+        const carts = await res.json()
+        if (Array.isArray(carts) && carts.length > 0) {
+          // Find the most recent cart by date
+          const latest = carts.reduce((a, b) =>
+            new Date(a.date) > new Date(b.date) ? a : b
+          )
+          const products = latest.products
+          // Load product details and quantities
+          const serverItems: CartItem[] = await Promise.all(
+            products.map(async (p: { productId: number; quantity: number }) => {
+              const prodRes = await fetch(`https://fakestoreapi.com/products/${p.productId}`)
+              if (!prodRes.ok) throw new Error('Failed to fetch product')
+              const prodData = await prodRes.json()
+              return { product: prodData, quantity: p.quantity }
+            })
+          )
+          setItems(serverItems)
+        }
+      } catch (err) {
+        console.error('Failed to load server cart:', err)
+      }
+    }
+    fetchCart()
+  }, [user])
 
   const addItem = (product: Product, quantity = 1) => {
     setItems(prev => {
