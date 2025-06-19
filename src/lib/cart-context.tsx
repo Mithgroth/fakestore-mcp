@@ -1,6 +1,6 @@
 'use client'
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react'
 import { Product, CartItem } from '@/lib/types'
 import { useAuth } from '@/lib/auth-context'
 import { mcpClient } from './mcp-client'
@@ -15,11 +15,22 @@ interface CartContextType {
   clearCart: () => Promise<void>
 }
 
+interface PendingUpdate {
+  productId: number
+  quantity: number
+  timestamp: number
+}
+
 const CartContext = createContext<CartContextType | undefined>(undefined)
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([])
   const { user } = useAuth()
+  
+  // Debouncing state
+  const pendingUpdatesRef = useRef<Map<number, PendingUpdate>>(new Map())
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const DEBOUNCE_DELAY = 800 // 800ms delay before syncing to server
 
   // Load from localStorage
   useEffect(() => {
@@ -64,21 +75,51 @@ export function CartProvider({ children }: { children: ReactNode }) {
     fetchCart()
   }, [user])
 
-  const addItem = async (product: Product, quantity = 1) => {
-    if (user) {
-      try {
-        await mcpClient.addToCart(product.id, quantity)
-        const result = await mcpClient.getCart()
-        if (result.success && result.cart) {
-          const serverItems: CartItem[] = result.cart.items.map(item => ({ product: item.product, quantity: item.quantity }))
-          setItems(serverItems)
-          return
+  // Debounced server sync function
+  const syncPendingUpdates = async () => {
+    if (!user || pendingUpdatesRef.current.size === 0) return
+
+    const updates = Array.from(pendingUpdatesRef.current.values())
+    pendingUpdatesRef.current.clear()
+
+    try {
+      // Process all pending updates
+      for (const update of updates) {
+        if (update.quantity === 0) {
+          await mcpClient.removeFromCart(update.productId)
+        } else {
+          // Remove existing entry first
+          await mcpClient.removeFromCart(update.productId)
+          // Add with new quantity
+          await mcpClient.addToCart(update.productId, update.quantity)
         }
-      } catch (err) {
-        console.error('Failed to add to server cart:', err)
       }
+
+      // Fetch latest state to ensure consistency
+      const result = await mcpClient.getCart()
+      if (result.success && result.cart) {
+        const serverItems: CartItem[] = result.cart.items.map(item => ({ 
+          product: item.product, 
+          quantity: item.quantity 
+        }))
+        setItems(serverItems)
+      }
+    } catch (err) {
+      console.error('Failed to sync cart updates to server:', err)
+      // Could implement retry logic or show user notification here
     }
-    // Fallback to local update
+  }
+
+  // Schedule debounced sync
+  const scheduleSync = () => {
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current)
+    }
+    debounceTimeoutRef.current = setTimeout(syncPendingUpdates, DEBOUNCE_DELAY)
+  }
+
+  const addItem = async (product: Product, quantity = 1) => {
+    // Optimistic update - update UI immediately
     setItems(prev => {
       const index = prev.findIndex(item => item.product.id === product.id)
       if (index !== -1) {
@@ -88,46 +129,38 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
       return [...prev, { product, quantity }]
     })
+
+    // Schedule server sync if user is logged in
+    if (user) {
+      const currentQuantity = items.find(item => item.product.id === product.id)?.quantity ?? 0
+      const newQuantity = currentQuantity + quantity
+      
+      pendingUpdatesRef.current.set(product.id, {
+        productId: product.id,
+        quantity: newQuantity,
+        timestamp: Date.now()
+      })
+      scheduleSync()
+    }
   }
 
   const removeItem = async (productId: number) => {
-    if (user) {
-      try {
-        await mcpClient.removeFromCart(productId)
-        const result = await mcpClient.getCart()
-        if (result.success && result.cart) {
-          const serverItems: CartItem[] = result.cart.items.map(item => ({ product: item.product, quantity: item.quantity }))
-          setItems(serverItems)
-          return
-        }
-      } catch (err) {
-        console.error('Failed to remove from server cart:', err)
-      }
-    }
-    // Fallback to local removal
+    // Optimistic update - update UI immediately
     setItems(prev => prev.filter(item => item.product.id !== productId))
+
+    // Schedule server sync if user is logged in
+    if (user) {
+      pendingUpdatesRef.current.set(productId, {
+        productId,
+        quantity: 0,
+        timestamp: Date.now()
+      })
+      scheduleSync()
+    }
   }
 
   const updateQuantity = async (productId: number, quantity: number) => {
-    if (user) {
-      try {
-        // Remove existing entry
-        await mcpClient.removeFromCart(productId)
-        // If quantity > 0, re-add desired amount
-        if (quantity > 0) {
-          await mcpClient.addToCart(productId, quantity)
-        }
-        const result = await mcpClient.getCart()
-        if (result.success && result.cart) {
-          const serverItems: CartItem[] = result.cart.items.map(item => ({ product: item.product, quantity: item.quantity }))
-          setItems(serverItems)
-          return
-        }
-      } catch (err) {
-        console.error('Failed to update server cart:', err)
-      }
-    }
-    // Fallback to local update
+    // Optimistic update - update UI immediately
     setItems(prev =>
       prev
         .map(item =>
@@ -135,9 +168,29 @@ export function CartProvider({ children }: { children: ReactNode }) {
         )
         .filter(item => item.quantity > 0)
     )
+
+    // Schedule server sync if user is logged in
+    if (user) {
+      pendingUpdatesRef.current.set(productId, {
+        productId,
+        quantity,
+        timestamp: Date.now()
+      })
+      scheduleSync()
+    }
   }
 
   const clearCart = async () => {
+    // Optimistic update - clear UI immediately
+    setItems([])
+
+    // Clear pending updates since we're clearing everything
+    pendingUpdatesRef.current.clear()
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current)
+    }
+
+    // Clear server cart if user is logged in
     if (user) {
       try {
         await mcpClient.clearCart()
@@ -145,7 +198,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
         console.error('Failed to clear server cart:', err)
       }
     }
-    setItems([])
   }
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0)
