@@ -1,4 +1,4 @@
-import { POST, GET, sessions } from './route';
+import { POST, GET } from './route';
 import { NextRequest } from 'next/server';
 
 // Helper to create NextRequest-like objects for testing
@@ -15,7 +15,6 @@ describe('MCP Server - E2E Tests with Real API', () => {
   let sessionId: string;
 
   beforeEach(() => {
-    sessions.clear();
     sessionId = '';
   });
 
