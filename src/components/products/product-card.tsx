@@ -4,8 +4,11 @@ import React from 'react'
 import Image from 'next/image'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Star, ShoppingCart, Plus } from 'lucide-react'
+import { Star, Plus, Minus, ShoppingCart } from 'lucide-react'
 import { getCategoryInfoSmall } from '@/lib/categories'
+import { useAuth } from '@/lib/auth-context'
+import { useCart } from '@/lib/cart-context'
+import { useRouter } from 'next/navigation'
 
 interface Product {
   id: number
@@ -26,6 +29,40 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, onAddToCart }: ProductCardProps) {
+  const { user } = useAuth()
+  const router = useRouter()
+  const { items, removeItem, updateQuantity } = useCart()
+  const cartItem = items.find(item => item.product.id === product.id)
+  const inCart = !!cartItem
+
+  const handleAdd = () => {
+    if (!user) {
+      router.push('/login')
+    } else {
+      onAddToCart?.(product)
+    }
+  }
+
+  const handleIncrement = () => {
+    if (!user) {
+      router.push('/login')
+    } else if (cartItem) {
+      updateQuantity(product.id, cartItem.quantity + 1)
+    }
+  }
+
+  const handleMinus = () => {
+    if (!user) {
+      router.push('/login')
+    } else if (cartItem) {
+      if (cartItem.quantity > 1) {
+        updateQuantity(product.id, cartItem.quantity - 1)
+      } else {
+        removeItem(product.id)
+      }
+    }
+  }
+
   const truncatedDescription = product.description.length > 100 
     ? product.description.substring(0, 100) + '...'
     : product.description
@@ -33,7 +70,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const categoryInfo = getCategoryInfoSmall(product.category)
 
   return (
-    <Card className="h-full flex flex-col hover:shadow-lg transition-shadow duration-300">
+    <Card className={`relative h-full flex flex-col hover:shadow-lg transition-shadow duration-300 ${inCart ? 'border-2 border-blue-300' : ''}`}>
       <CardHeader className="pb-0 p-0 bg-white">
         {/* Product Image with Overlays */}
         <div className="aspect-square relative overflow-hidden rounded-t-md bg-white">
@@ -66,6 +103,11 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
           </div>
         </div>
       </CardHeader>
+      {inCart && (
+        <div className="absolute top-2 right-2 bg-blue-600 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">
+          {cartItem.quantity}
+        </div>
+      )}
       
       <CardContent className="flex-1 flex flex-col p-0 bg-gray-50">
         {/* Product Title */}
@@ -86,26 +128,45 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
         
         {/* Price and Cart Actions */}
         <div className="flex items-center justify-between px-4 pb-3">
-          {/* Reserve space for remove button */}
-          <div className="w-10">
-            {/* Remove button will go here when item is in cart */}
+          <div className="w-10 flex items-center justify-center">
+            {inCart && (
+              <Button
+                size="sm"
+                onClick={handleMinus}
+                className="gap-0 px-2 py-2 bg-gray-600 hover:bg-gray-700"
+                title={cartItem.quantity > 1 ? "Decrease quantity" : "Remove from Cart"}
+              >
+                <Minus className="h-3 w-3" />
+                <ShoppingCart className="h-3 w-3" />
+              </Button>
+            )}
           </div>
-          
-          {/* Centered Price */}
-          <span className="text-lg font-bold flex-1 text-center">
+          <span className="text-lg font-bold">
             ${product.price.toFixed(2)}
           </span>
-          
-          {/* Add to Cart Button */}
-          <Button 
-            size="sm" 
-            onClick={() => onAddToCart?.(product)}
-            className="px-2 py-2 bg-green-600 hover:bg-green-700 gap-0"
-            title="Add to Cart"
-          >
-            <Plus className="h-3 w-3" />
-            <ShoppingCart className="h-3 w-3" />
-          </Button>
+          <div>
+            {inCart ? (
+              <Button
+                size="sm"
+                onClick={handleIncrement}
+                className="gap-0 px-2 py-2 bg-green-600 hover:bg-green-700"
+                title="Increase quantity"
+              >
+                <Plus className="h-3 w-3" />
+                <ShoppingCart className="h-3 w-3" />
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                onClick={handleAdd}
+                className="gap-0 px-2 py-2 bg-green-600 hover:bg-green-700"
+                title="Add to Cart"
+              >
+                <Plus className="h-3 w-3" />
+                <ShoppingCart className="h-3 w-3" />
+              </Button>
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>

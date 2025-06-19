@@ -11,6 +11,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { ShoppingCart, User, LogOut, Menu, Store } from 'lucide-react'
 import { getCategoryInfo } from '@/lib/categories'
 import { LoginModal } from '@/components/auth/login-modal'
+import { useCart } from '@/lib/cart-context'
 import { CartModal } from '@/components/cart/cart-modal'
 import { useRouter } from 'next/navigation'
 
@@ -19,6 +20,7 @@ export function Header() {
   const { activeSection, scrollToSection } = useScrollSpy()
   const [loginModalOpen, setLoginModalOpen] = useState(false)
   const [cartModalOpen, setCartModalOpen] = useState(false)
+  const { items } = useCart()
   const router = useRouter()
 
   // Fetch categories and icons
@@ -84,7 +86,7 @@ export function Header() {
           >
             <ShoppingCart className="h-4 w-4" />
             <Badge className="absolute -top-2 -right-2 px-1 py-0 text-xs min-w-[20px] h-5 flex items-center justify-center">
-              0
+              {items.length}
             </Badge>
           </Button>
 

@@ -5,6 +5,8 @@ import { ProductGrid } from '@/components/products/product-grid'
 import { DemoInfoDialog } from '@/components/layout/demo-info-dialog'
 import { CategoryHeader } from '@/components/products/category-header'
 import { useAuth } from '@/lib/auth-context'
+import { useCart } from '@/lib/cart-context'
+import { useRouter } from 'next/navigation'
 import { Footer } from '@/components/layout/footer'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -39,6 +41,8 @@ interface CategoryGroup {
 
 export default function Home() {
   const { user } = useAuth()
+  const { addItem } = useCart()
+  const router = useRouter()
   const [categoryGroups, setCategoryGroups] = useState<CategoryGroup[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -126,9 +130,11 @@ export default function Home() {
   }
 
   const handleAddToCart = (product: Product) => {
-    // For now, just show an alert
-    // Later we'll integrate with cart context
-    alert(`Added "${product.title}" to cart!`)
+    if (!user) {
+      router.push('/login')
+      return
+    }
+    addItem(product, 1)
   }
 
   if (error) {
