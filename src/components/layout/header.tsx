@@ -13,15 +13,18 @@ import { getCategoryInfo } from '@/lib/categories'
 import { LoginModal } from '@/components/auth/login-modal'
 import { useCart } from '@/lib/cart-context'
 import { CartModal } from '@/components/cart/cart-modal'
-import { useRouter } from 'next/navigation'
 
 export function Header() {
   const { user, logout } = useAuth()
   const { activeSection, scrollToSection } = useScrollSpy()
   const [loginModalOpen, setLoginModalOpen] = useState(false)
+  useEffect(() => {
+    const handler = () => setLoginModalOpen(true)
+    window.addEventListener('openLoginModal', handler)
+    return () => window.removeEventListener('openLoginModal', handler)
+  }, [])
   const [cartModalOpen, setCartModalOpen] = useState(false)
   const { items } = useCart()
-  const router = useRouter()
 
   // Fetch categories and icons
   const [categoryGroups, setCategoryGroups] = useState<any[]>([])
@@ -81,7 +84,7 @@ export function Header() {
             className="relative"
             onClick={() => {
               if (user) setCartModalOpen(true)
-              else router.push('/login')
+              else setLoginModalOpen(true)
             }}
           >
             <ShoppingCart className="h-4 w-4" />

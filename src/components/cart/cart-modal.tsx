@@ -3,7 +3,6 @@
 import React from 'react'
 import { useCart } from '@/lib/cart-context'
 import { useAuth } from '@/lib/auth-context'
-import { useRouter } from 'next/navigation'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Plus, Minus } from 'lucide-react'
@@ -15,16 +14,21 @@ interface CartModalProps {
 
 export function CartModal({ open, onOpenChange }: CartModalProps) {
   const { user } = useAuth()
-  const router = useRouter()
+  // helper to prompt the login modal
+  const promptLogin = () => {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('openLoginModal'))
+    }
+  }
   const { items, totalItems, totalPrice, removeItem, updateQuantity, clearCart } = useCart()
 
   // Redirect to login if not authenticated
   React.useEffect(() => {
     if (open && !user) {
       onOpenChange(false)
-      router.push('/login')
+      promptLogin()
     }
-  }, [open, user, onOpenChange, router])
+  }, [open, user, onOpenChange])
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

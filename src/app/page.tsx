@@ -6,7 +6,6 @@ import { DemoInfoDialog } from '@/components/layout/demo-info-dialog'
 import { CategoryHeader } from '@/components/products/category-header'
 import { useAuth } from '@/lib/auth-context'
 import { useCart } from '@/lib/cart-context'
-import { useRouter } from 'next/navigation'
 import { Footer } from '@/components/layout/footer'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -42,13 +41,19 @@ interface CategoryGroup {
 export default function Home() {
   const { user } = useAuth()
   const { addItem } = useCart()
-  const router = useRouter()
   const [categoryGroups, setCategoryGroups] = useState<CategoryGroup[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const { registerSection, unregisterSection } = useScrollSpy()
   const categoryHeaderRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
   const categoryContainerRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
+
+  // helper to prompt the login modal
+  const promptLogin = () => {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('openLoginModal'))
+    }
+  }
 
   useEffect(() => {
     const fetchProductsByCategories = async () => {
@@ -131,7 +136,7 @@ export default function Home() {
 
   const handleAddToCart = (product: Product) => {
     if (!user) {
-      router.push('/login')
+      promptLogin()
       return
     }
     addItem(product, 1)

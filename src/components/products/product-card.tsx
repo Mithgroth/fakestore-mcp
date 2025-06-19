@@ -8,7 +8,6 @@ import { Star, Plus, Minus, ShoppingCart } from 'lucide-react'
 import { getCategoryInfoSmall } from '@/lib/categories'
 import { useAuth } from '@/lib/auth-context'
 import { useCart } from '@/lib/cart-context'
-import { useRouter } from 'next/navigation'
 
 interface Product {
   id: number
@@ -30,14 +29,19 @@ interface ProductCardProps {
 
 export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const { user } = useAuth()
-  const router = useRouter()
   const { items, removeItem, updateQuantity } = useCart()
   const cartItem = items.find(item => item.product.id === product.id)
   const inCart = !!cartItem
 
+  const promptLogin = () => {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('openLoginModal'))
+    }
+  }
+
   const handleAdd = () => {
     if (!user) {
-      router.push('/login')
+      promptLogin()
     } else {
       onAddToCart?.(product)
     }
@@ -45,7 +49,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
 
   const handleIncrement = () => {
     if (!user) {
-      router.push('/login')
+      promptLogin()
     } else if (cartItem) {
       updateQuantity(product.id, cartItem.quantity + 1)
     }
@@ -53,7 +57,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
 
   const handleMinus = () => {
     if (!user) {
-      router.push('/login')
+      promptLogin()
     } else if (cartItem) {
       if (cartItem.quantity > 1) {
         updateQuantity(product.id, cartItem.quantity - 1)
