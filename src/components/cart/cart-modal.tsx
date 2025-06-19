@@ -22,6 +22,13 @@ export function CartModal({ open, onOpenChange }: CartModalProps) {
   }
   const { items, totalItems, totalPrice, removeItem, updateQuantity, clearCart } = useCart()
 
+  const handleCheckout = () => {
+    // Simple checkout flow - show thank you message and reset cart
+    alert('Thank you for your order! Your cart has been cleared.')
+    clearCart()
+    onOpenChange(false)
+  }
+
   // Redirect to login if not authenticated
   React.useEffect(() => {
     if (open && !user) {
@@ -94,7 +101,7 @@ export function CartModal({ open, onOpenChange }: CartModalProps) {
                 <Button variant="outline" onClick={clearCart} size="sm">
                   Clear Cart
                 </Button>
-                <Button size="sm">
+                <Button size="sm" onClick={handleCheckout}>
                   Checkout
                 </Button>
               </div>
