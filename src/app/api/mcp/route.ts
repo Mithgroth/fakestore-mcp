@@ -4,6 +4,7 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprot
 
 // FakeStore API base URL (used only on server-side)
 const FAKESTORE_API_URL = 'https://fakestoreapi.com'
+const CART_TTL_MS = 30 * 60 * 1000; // 30 minutes TTL for cart persistence
 
 // In-memory session store: sessionId -> Server instance
 const sessions = new Map<string, Server>();
@@ -13,6 +14,11 @@ function createServer(): Server {
   const server = new Server({ name: 'fakestore-mcp-server', version: '1.0.0' });
   // Error handling
   server.onerror = (error) => console.error('[MCP Error]', error);
+
+  // Cart persistence state with TTL per session
+  (server as any).cartItems = [];
+  (server as any).cartTimestamp = 0;
+  (server as any).cartId = null;
 
   // Define available tools
   server.setRequestHandler(ListToolsRequestSchema, async () => ({
@@ -94,24 +100,107 @@ function createServer(): Server {
       }
       case 'add_to_cart': {
         if (!(server as any).currentUser) throw new Error('User must be logged in');
-        // Simulate cart: in real, we'd store state in session
-        const resp = await fetch(`${FAKESTORE_API_URL}/products/${args.productId}`);
+        const now = Date.now();
+        let items = (server as any).cartItems || [];
+        const ts = (server as any).cartTimestamp || 0;
+        if (now - ts > CART_TTL_MS) items = [];
+        if (!(server as any).cartId || now - ts > CART_TTL_MS) {
+          const createResp = await fetch(`${FAKESTORE_API_URL}/carts`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: (server as any).currentUser.id, date: new Date().toISOString(), products: [] })
+          });
+          const created = await createResp.json();
+          (server as any).cartId = created.id;
+        }
+        const { productId, quantity = 1 } = args;
+        const existing = items.find((it: any) => it.productId === productId);
+        if (existing) existing.quantity += quantity;
+        else items.push({ productId, quantity });
+        (server as any).cartItems = items;
+        (server as any).cartTimestamp = now;
+        await fetch(`${FAKESTORE_API_URL}/carts/${(server as any).cartId}`, {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: (server as any).currentUser.id, date: new Date().toISOString(), products: items })
+        });
+        const resp = await fetch(`${FAKESTORE_API_URL}/products/${productId}`);
         const product = await resp.json();
-        return { content: [{ type: 'text', text: JSON.stringify({ success: true, product, quantity: args.quantity || 1 }) }] };
+        return { content: [{ type: 'text', text: JSON.stringify({ success: true, product, quantity }) }] };
       }
       case 'remove_from_cart': {
         if (!(server as any).currentUser) throw new Error('User must be logged in');
-        const resp = await fetch(`${FAKESTORE_API_URL}/products/${args.productId}`);
-        const product = await resp.json();
-        return { content: [{ type: 'text', text: JSON.stringify({ success: true, productId: args.productId }) }] };
+        const now = Date.now();
+        let items = (server as any).cartItems || [];
+        const ts = (server as any).cartTimestamp || 0;
+        if (now - ts > CART_TTL_MS) items = [];
+        if (!(server as any).cartId || now - ts > CART_TTL_MS) {
+          const createResp = await fetch(`${FAKESTORE_API_URL}/carts`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: (server as any).currentUser.id, date: new Date().toISOString(), products: items })
+          });
+          const created = await createResp.json();
+          (server as any).cartId = created.id;
+        }
+        const { productId } = args;
+        items = items.filter((it: any) => it.productId !== productId);
+        (server as any).cartItems = items;
+        (server as any).cartTimestamp = now;
+        await fetch(`${FAKESTORE_API_URL}/carts/${(server as any).cartId}`, {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: (server as any).currentUser.id, date: new Date().toISOString(), products: items })
+        });
+        return { content: [{ type: 'text', text: JSON.stringify({ success: true, productId }) }] };
       }
       case 'get_cart': {
         if (!(server as any).currentUser) throw new Error('User must be logged in');
-        // Simulated empty cart
-        return { content: [{ type: 'text', text: JSON.stringify({ success: true, cart: { items: [], totalItems: 0, totalPrice: 0 } }) }] };
+        const now = Date.now();
+        let items = (server as any).cartItems || [];
+        const ts = (server as any).cartTimestamp || 0;
+        if (now - ts > CART_TTL_MS) {
+          const resp = await fetch(`${FAKESTORE_API_URL}/carts/user/${(server as any).currentUser.id}`);
+          const userCarts = resp.ok ? await resp.json() : [];
+          if (Array.isArray(userCarts) && userCarts.length) {
+            const latest = userCarts.reduce((a: any, b: any) => new Date(a.date) > new Date(b.date) ? a : b);
+            items = latest.products.map((p: any) => ({ productId: p.productId, quantity: p.quantity }));
+            (server as any).cartId = latest.id;
+          } else {
+            items = [];
+            const createResp = await fetch(`${FAKESTORE_API_URL}/carts`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userId: (server as any).currentUser.id, date: new Date().toISOString(), products: [] })
+            });
+            const createdCart = await createResp.json();
+            (server as any).cartId = createdCart.id;
+          }
+          (server as any).cartItems = items;
+          (server as any).cartTimestamp = now;
+        }
+        const enriched: any[] = [];
+        for (const it of items) {
+          const pr = await fetch(`${FAKESTORE_API_URL}/products/${it.productId}`);
+          const product = await pr.json();
+          enriched.push({ product, quantity: it.quantity });
+        }
+        const totalItems = enriched.reduce((sum, i) => sum + i.quantity, 0);
+        const totalPrice = enriched.reduce((sum, i) => sum + i.product.price * i.quantity, 0);
+        return { content: [{ type: 'text', text: JSON.stringify({ success: true, cart: { items: enriched, totalItems, totalPrice } }) }] };
       }
       case 'clear_cart': {
         if (!(server as any).currentUser) throw new Error('User must be logged in');
+        if (!(server as any).cartId) {
+          const createResp = await fetch(`${FAKESTORE_API_URL}/carts`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: (server as any).currentUser.id, date: new Date().toISOString(), products: [] })
+          });
+          const created = await createResp.json();
+          (server as any).cartId = created.id;
+        }
+        (server as any).cartItems = [];
+        (server as any).cartTimestamp = Date.now();
+        await fetch(`${FAKESTORE_API_URL}/carts/${(server as any).cartId}`, {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: (server as any).currentUser.id, date: new Date().toISOString(), products: [] })
+        });
         return { content: [{ type: 'text', text: JSON.stringify({ success: true }) }] };
       }
       default:

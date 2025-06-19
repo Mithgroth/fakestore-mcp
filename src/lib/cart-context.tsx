@@ -9,10 +9,10 @@ interface CartContextType {
   items: CartItem[]
   totalItems: number
   totalPrice: number
-  addItem: (product: Product, quantity?: number) => void
-  removeItem: (productId: number) => void
-  updateQuantity: (productId: number, quantity: number) => void
-  clearCart: () => void
+  addItem: (product: Product, quantity?: number) => Promise<void>
+  removeItem: (productId: number) => Promise<void>
+  updateQuantity: (productId: number, quantity: number) => Promise<void>
+  clearCart: () => Promise<void>
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
@@ -64,7 +64,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
     fetchCart()
   }, [user])
 
-  const addItem = (product: Product, quantity = 1) => {
+  const addItem = async (product: Product, quantity = 1) => {
+    if (user) {
+      try {
+        await mcpClient.addToCart(product.id, quantity)
+        const result = await mcpClient.getCart()
+        if (result.success && result.cart) {
+          const serverItems: CartItem[] = result.cart.items.map(item => ({ product: item.product, quantity: item.quantity }))
+          setItems(serverItems)
+          return
+        }
+      } catch (err) {
+        console.error('Failed to add to server cart:', err)
+      }
+    }
+    // Fallback to local update
     setItems(prev => {
       const index = prev.findIndex(item => item.product.id === product.id)
       if (index !== -1) {
@@ -76,11 +90,44 @@ export function CartProvider({ children }: { children: ReactNode }) {
     })
   }
 
-  const removeItem = (productId: number) => {
+  const removeItem = async (productId: number) => {
+    if (user) {
+      try {
+        await mcpClient.removeFromCart(productId)
+        const result = await mcpClient.getCart()
+        if (result.success && result.cart) {
+          const serverItems: CartItem[] = result.cart.items.map(item => ({ product: item.product, quantity: item.quantity }))
+          setItems(serverItems)
+          return
+        }
+      } catch (err) {
+        console.error('Failed to remove from server cart:', err)
+      }
+    }
+    // Fallback to local removal
     setItems(prev => prev.filter(item => item.product.id !== productId))
   }
 
-  const updateQuantity = (productId: number, quantity: number) => {
+  const updateQuantity = async (productId: number, quantity: number) => {
+    if (user) {
+      try {
+        // Remove existing entry
+        await mcpClient.removeFromCart(productId)
+        // If quantity > 0, re-add desired amount
+        if (quantity > 0) {
+          await mcpClient.addToCart(productId, quantity)
+        }
+        const result = await mcpClient.getCart()
+        if (result.success && result.cart) {
+          const serverItems: CartItem[] = result.cart.items.map(item => ({ product: item.product, quantity: item.quantity }))
+          setItems(serverItems)
+          return
+        }
+      } catch (err) {
+        console.error('Failed to update server cart:', err)
+      }
+    }
+    // Fallback to local update
     setItems(prev =>
       prev
         .map(item =>
@@ -90,7 +137,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
     )
   }
 
-  const clearCart = () => {
+  const clearCart = async () => {
+    if (user) {
+      try {
+        await mcpClient.clearCart()
+      } catch (err) {
+        console.error('Failed to clear server cart:', err)
+      }
+    }
     setItems([])
   }
 

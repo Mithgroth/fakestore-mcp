@@ -51,7 +51,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
     if (!user) {
       promptLogin()
     } else if (cartItem) {
-      updateQuantity(product.id, cartItem.quantity + 1)
+      void updateQuantity(product.id, cartItem.quantity + 1)
     }
   }
 
@@ -60,9 +60,9 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
       promptLogin()
     } else if (cartItem) {
       if (cartItem.quantity > 1) {
-        updateQuantity(product.id, cartItem.quantity - 1)
+        void updateQuantity(product.id, cartItem.quantity - 1)
       } else {
-        removeItem(product.id)
+        void removeItem(product.id)
       }
     }
   }

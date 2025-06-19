@@ -67,7 +67,7 @@ export function CartModal({ open, onOpenChange }: CartModalProps) {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                    onClick={() => void updateQuantity(item.product.id, item.quantity - 1)}
                     disabled={item.quantity <= 1}
                   >
                     <Minus className="h-4 w-4" />
@@ -76,14 +76,14 @@ export function CartModal({ open, onOpenChange }: CartModalProps) {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                    onClick={() => void updateQuantity(item.product.id, item.quantity + 1)}
                   >
                     <Plus className="h-4 w-4" />
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => removeItem(item.product.id)}
+                    onClick={() => void removeItem(item.product.id)}
                     className="text-red-500 hover:bg-red-50"
                   >
                     Remove
@@ -98,7 +98,7 @@ export function CartModal({ open, onOpenChange }: CartModalProps) {
                 <span className="font-medium">${totalPrice.toFixed(2)}</span>
               </div>
               <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={clearCart} size="sm">
+                <Button variant="outline" onClick={() => void clearCart()} size="sm">
                   Clear Cart
                 </Button>
                 <Button size="sm" onClick={handleCheckout}>

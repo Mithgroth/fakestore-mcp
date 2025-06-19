@@ -18,7 +18,7 @@ class MCPClientManager {
   clearAuth() {
     this.authToken = null
     this.currentUser = null
-    this.sessionId = null
+    // Preserve sessionId to retain cart session across logouts until TTL expires
   }
 
   private async callRpc<T>(toolName: string, args: any = {}): Promise<T> {
