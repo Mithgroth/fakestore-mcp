@@ -14,37 +14,24 @@ export interface Product {
 }
 
 export interface CartItem {
-  productId: number
+  product: Product
   quantity: number
 }
 
 export interface Cart {
-  id: number
-  userId: number
-  date: string
-  products: CartItem[]
+  items: CartItem[]
+  totalItems: number
+  totalPrice: number
 }
 
 export interface User {
   id: number
-  email: string
   username: string
-  password: string
+  email: string
   name: {
     firstname: string
     lastname: string
   }
-  address: {
-    city: string
-    street: string
-    number: number
-    zipcode: string
-    geolocation: {
-      lat: string
-      long: string
-    }
-  }
-  phone: string
 }
 
 export interface LoginCredentials {
@@ -56,7 +43,6 @@ export interface AuthToken {
   token: string
 }
 
-// MCP Tool Types
 export interface MCPToolResult<T = any> {
   success: boolean
   data?: T
@@ -70,4 +56,4 @@ export interface AddToCartParams {
 
 export interface RemoveFromCartParams {
   productId: number
-} 
+}

@@ -13,6 +13,7 @@ import { getCategoryInfo } from '@/lib/categories'
 import { LoginModal } from '@/components/auth/login-modal'
 import { useCart } from '@/lib/cart-context'
 import { CartModal } from '@/components/cart/cart-modal'
+import { mcpClient } from '@/lib/mcp-client'
 
 export function Header() {
   const { user, logout } = useAuth()
@@ -32,10 +33,10 @@ export function Header() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const categoriesResponse = await fetch('https://fakestoreapi.com/products/categories')
-        if (!categoriesResponse.ok) throw new Error('Failed to fetch categories')
-        const categories = await categoriesResponse.json()
-        setCategoryGroups(categories.map((name: string) => getCategoryInfo(name)))
+        const result = await mcpClient.getCategories()
+        if (result.success && result.categories) {
+          setCategoryGroups(result.categories.map((name: string) => getCategoryInfo(name)))
+        }
       } catch {}
     }
     fetchCategories()
@@ -98,11 +99,11 @@ export function Header() {
               {/* User Avatar */}
               <Avatar className="h-8 w-8">
                 <AvatarFallback className="text-xs">
-                  {user.firstName.charAt(0)}{user.lastName.charAt(0)}
+                  {user.name.firstname.charAt(0)}{user.name.lastname.charAt(0)}
                 </AvatarFallback>
               </Avatar>
               <span className="hidden md:inline text-sm font-medium">
-                {user.firstName}
+                {user.name.firstname}
               </span>
               <Button variant="ghost" size="sm" onClick={logout} className="hover:bg-destructive/10">
                 <LogOut className="h-4 w-4" />

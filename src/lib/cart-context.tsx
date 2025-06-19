@@ -1,13 +1,9 @@
 'use client'
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-import { Product } from '@/lib/types'
+import { Product, CartItem } from '@/lib/types'
 import { useAuth } from '@/lib/auth-context'
-
-interface CartItem {
-  product: Product
-  quantity: number
-}
+import { mcpClient } from './mcp-client'
 
 interface CartContextType {
   items: CartItem[]
@@ -49,27 +45,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
       setItems([])
       return
     }
-    // Fetch latest cart for logged-in user
+    // Fetch latest cart for logged-in user using MCP client
     const fetchCart = async () => {
       try {
-        const res = await fetch(`https://fakestoreapi.com/carts/user/${user.id}`)
-        if (!res.ok) return
-        const carts = await res.json()
-        if (Array.isArray(carts) && carts.length > 0) {
-          // Find the most recent cart by date
-          const latest = carts.reduce((a, b) =>
-            new Date(a.date) > new Date(b.date) ? a : b
-          )
-          const products = latest.products
-          // Load product details and quantities
-          const serverItems: CartItem[] = await Promise.all(
-            products.map(async (p: { productId: number; quantity: number }) => {
-              const prodRes = await fetch(`https://fakestoreapi.com/products/${p.productId}`)
-              if (!prodRes.ok) throw new Error('Failed to fetch product')
-              const prodData = await prodRes.json()
-              return { product: prodData, quantity: p.quantity }
-            })
-          )
+        const result = await mcpClient.getCart()
+        if (result.success && result.cart) {
+          // Convert MCP cart items to local cart items
+          const serverItems: CartItem[] = result.cart.items.map((item: CartItem) => ({
+            product: item.product,
+            quantity: item.quantity
+          }))
           setItems(serverItems)
         }
       } catch (err) {

@@ -15,6 +15,7 @@ import { getCategoryInfoLarge } from '@/lib/categories'
 import { useScrollSpy } from '@/lib/scroll-spy-context'
 import { SortOption } from '@/components/products/product-sort'
 import { sortProducts } from '@/lib/product-utils'
+import { mcpClient } from '@/lib/mcp-client'
 
 interface Product {
   id: number
@@ -61,22 +62,22 @@ export default function Home() {
         setLoading(true)
         setError(null)
         
-        // First, get all categories
-        const categoriesResponse = await fetch('https://fakestoreapi.com/products/categories')
-        if (!categoriesResponse.ok) {
+        // First, get all categories using MCP client
+        const categoriesResult = await mcpClient.getCategories()
+        if (!categoriesResult.success || !categoriesResult.categories) {
           throw new Error('Failed to fetch categories')
         }
-        const categories = await categoriesResponse.json()
+        const categories = categoriesResult.categories
         
         // Then fetch products for each category
         const categoryGroupsData: CategoryGroup[] = []
         
         for (const category of categories) {
-          const productsResponse = await fetch(`https://fakestoreapi.com/products/category/${category}`)
-          if (!productsResponse.ok) {
+          const productsResult = await mcpClient.getProducts(category)
+          if (!productsResult.success || !productsResult.products) {
             throw new Error(`Failed to fetch products for category: ${category}`)
           }
-          const products = await productsResponse.json()
+          const products = productsResult.products as Product[]
           
           const categoryInfo = getCategoryInfoLarge(category)
           // Sort products by rating descending by default
