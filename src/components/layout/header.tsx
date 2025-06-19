@@ -11,11 +11,15 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { ShoppingCart, User, LogOut, Menu, Store } from 'lucide-react'
 import { getCategoryInfo } from '@/lib/categories'
 import { LoginModal } from '@/components/auth/login-modal'
+import { CartModal } from '@/components/cart/cart-modal'
+import { useRouter } from 'next/navigation'
 
 export function Header() {
   const { user, logout } = useAuth()
   const { activeSection, scrollToSection } = useScrollSpy()
   const [loginModalOpen, setLoginModalOpen] = useState(false)
+  const [cartModalOpen, setCartModalOpen] = useState(false)
+  const router = useRouter()
 
   // Fetch categories and icons
   const [categoryGroups, setCategoryGroups] = useState<any[]>([])
@@ -69,7 +73,15 @@ export function Header() {
         {/* User Actions */}
         <div className="flex items-center space-x-3">
           {/* Cart */}
-          <Button variant="outline" size="sm" className="relative">
+          <Button
+            variant="outline"
+            size="sm"
+            className="relative"
+            onClick={() => {
+              if (user) setCartModalOpen(true)
+              else router.push('/login')
+            }}
+          >
             <ShoppingCart className="h-4 w-4" />
             <Badge className="absolute -top-2 -right-2 px-1 py-0 text-xs min-w-[20px] h-5 flex items-center justify-center">
               0
@@ -129,6 +141,8 @@ export function Header() {
       
       {/* Login Modal */}
       <LoginModal open={loginModalOpen} onOpenChange={setLoginModalOpen} />
+      {/* Cart Modal */}
+      <CartModal open={cartModalOpen} onOpenChange={setCartModalOpen} />
     </header>
   )
 } 
