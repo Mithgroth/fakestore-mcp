@@ -1,8 +1,8 @@
-import fetchMock from 'jest-fetch-mock';
 import { NextResponse } from 'next/server';
 
-// Enable fetch mocking for unit tests
-fetchMock.enableMocks();
+// Use undici fetch for E2E tests
+const { fetch } = require('undici');
+global.fetch = fetch;
 
 // Override NextResponse.json to avoid calling Response.json static and causing errors
 // @ts-ignore

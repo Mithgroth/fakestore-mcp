@@ -111,6 +111,45 @@ describe('MCP Server - direct handler tests', () => {
     const req = { method: CallToolRequestSchema.shape.method.value, params: { name: 'add_to_cart', arguments: { productId: 1 } } };
     await expect(handler(req)).rejects.toThrow('User must be logged in');
   });
+
+  test('cart operations after login', async () => {
+    const DEMO_USER = { id: 1, username: 'johnd', name: 'John Doe', email: 'john@gmail.com' };
+    const productMock = { id: 1, title: 'Test Product', price: 9.99 };
+    // login, user fetch, add_to_cart, remove_from_cart use fetch
+    fetchMock.mockResponses(
+      [JSON.stringify({ token: 'token123' }), { status: 200 }],
+      [JSON.stringify([DEMO_USER]), { status: 200 }],
+      [JSON.stringify(productMock), { status: 200 }],
+      [JSON.stringify(productMock), { status: 200 }]
+    );
+    const server = createServer();
+    const handler = (server as any)._requestHandlers.get(CallToolRequestSchema.shape.method.value);
+    // Login
+    const loginReq = { method: CallToolRequestSchema.shape.method.value, params: { name: 'login', arguments: { username: DEMO_USER.username, password: 'm38rmF$' } } };
+    const loginRes = await handler(loginReq as any);
+    const loginContent = JSON.parse(loginRes.content[0].text);
+    expect(loginContent).toMatchObject({ success: true, token: 'token123', user: DEMO_USER });
+    // Add to cart
+    const addReq = { method: CallToolRequestSchema.shape.method.value, params: { name: 'add_to_cart', arguments: { productId: productMock.id, quantity: 2 } } };
+    const addRes = await handler(addReq as any);
+    const addContent = JSON.parse(addRes.content[0].text);
+    expect(addContent).toMatchObject({ success: true, product: productMock, quantity: 2 });
+    // Remove from cart
+    const removeReq = { method: CallToolRequestSchema.shape.method.value, params: { name: 'remove_from_cart', arguments: { productId: productMock.id } } };
+    const removeRes = await handler(removeReq as any);
+    const removeContent = JSON.parse(removeRes.content[0].text);
+    expect(removeContent).toEqual({ success: true, productId: productMock.id });
+    // Get cart
+    const getReq = { method: CallToolRequestSchema.shape.method.value, params: { name: 'get_cart', arguments: {} } };
+    const getRes = await handler(getReq as any);
+    const getContent = JSON.parse(getRes.content[0].text);
+    expect(getContent).toEqual({ success: true, cart: { items: [], totalItems: 0, totalPrice: 0 } });
+    // Clear cart
+    const clearReq = { method: CallToolRequestSchema.shape.method.value, params: { name: 'clear_cart', arguments: {} } };
+    const clearRes = await handler(clearReq as any);
+    const clearContent = JSON.parse(clearRes.content[0].text);
+    expect(clearContent).toEqual({ success: true });
+  });
 });
 
 describe('MCP Server - route handlers', () => {
