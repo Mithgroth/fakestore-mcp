@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/auth-context'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Plus, Minus } from 'lucide-react'
+import { CartRecommendation } from './cart-recommendation'
 
 interface CartModalProps {
   open: boolean
@@ -49,8 +50,8 @@ export function CartModal({ open, onOpenChange }: CartModalProps) {
         ) : (
           <div className="space-y-4">
             {items.map(item => (
-              <div key={item.product.id} className="flex items-start justify-between">
-                <div className="flex items-start gap-3">
+              <div key={item.product.id} className="flex items-start justify-between gap-4">
+                <div className="flex-1 min-w-0 flex items-start gap-3">
                   <div className="h-12 w-12 flex-shrink-0 flex items-center justify-center overflow-hidden bg-gray-100 rounded">
                     <img
                       src={item.product.image}
@@ -58,12 +59,12 @@ export function CartModal({ open, onOpenChange }: CartModalProps) {
                       className="max-h-full max-w-full"
                     />
                   </div>
-                  <div className="space-y-1">
+                  <div className="flex-1 min-w-0">
                     <p className="font-medium text-sm">{item.product.title}</p>
                     <p className="text-xs text-gray-500">${item.product.price.toFixed(2)}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-shrink-0">
                   <Button
                     variant="outline"
                     size="sm"
@@ -72,7 +73,7 @@ export function CartModal({ open, onOpenChange }: CartModalProps) {
                   >
                     <Minus className="h-4 w-4" />
                   </Button>
-                  <span className="text-sm">{item.quantity}</span>
+                  <span className="text-sm min-w-[1.5rem] text-center">{item.quantity}</span>
                   <Button
                     variant="outline"
                     size="sm"
@@ -91,6 +92,8 @@ export function CartModal({ open, onOpenChange }: CartModalProps) {
                 </div>
               </div>
             ))}
+
+            <CartRecommendation className="mt-4" />
 
             <div className="border-t mt-4 pt-4 space-y-3">
               <div className="flex justify-between">
