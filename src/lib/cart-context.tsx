@@ -147,17 +147,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return [...prev, { product, quantity }]
     })
 
-    // Schedule server sync if user is logged in
+    // Immediate server sync if user is logged in (no debounce)
     if (user) {
-      const currentQuantity = items.find(item => item.product.id === product.id)?.quantity ?? 0
-      const newQuantity = currentQuantity + quantity
-      
-      pendingUpdatesRef.current.set(product.id, {
-        productId: product.id,
-        quantity: newQuantity,
-        timestamp: Date.now()
-      })
-      scheduleSync()
+      try {
+        const currentQuantity = items.find(item => item.product.id === product.id)?.quantity ?? 0
+        const newQuantity = currentQuantity + quantity
+        await mcpClient.addToCart(product.id, newQuantity)
+      } catch (error) {
+        console.error('Failed to sync cart to server:', error)
+      }
     }
   }
 
@@ -165,14 +163,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
     // Optimistic update - update UI immediately
     setItems(prev => prev.filter(item => item.product.id !== productId))
 
-    // Schedule server sync if user is logged in
+    // Immediate server sync if user is logged in (no debounce)
     if (user) {
-      pendingUpdatesRef.current.set(productId, {
-        productId,
-        quantity: 0,
-        timestamp: Date.now()
-      })
-      scheduleSync()
+      try {
+        await mcpClient.removeFromCart(productId)
+      } catch (error) {
+        console.error('Failed to remove item from server:', error)
+      }
     }
   }
 
@@ -187,14 +184,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return updated
     })
 
-    // Schedule server sync if user is logged in
+    // Immediate server sync if user is logged in (no debounce)
     if (user) {
-      pendingUpdatesRef.current.set(productId, {
-        productId,
-        quantity,
-        timestamp: Date.now()
-      })
-      scheduleSync()
+      try {
+        if (quantity === 0) {
+          await mcpClient.removeFromCart(productId)
+        } else {
+          await mcpClient.addToCart(productId, quantity)
+        }
+      } catch (error) {
+        console.error('Failed to sync cart to server:', error)
+      }
     }
   }
 

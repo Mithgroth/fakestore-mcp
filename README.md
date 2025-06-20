@@ -26,6 +26,7 @@ A complete e-commerce application demonstrating Model Context Protocol (MCP) int
     - [Technical Flow](#technical-flow)
   - [Demo Credentials](#demo-credentials)
   - [Extras](#extras)
+  - [Notes](#notes)
 
 
 ## Setup Instructions
@@ -152,3 +153,7 @@ Login dialog contains ready-to-use accounts for easy testing:
   ![Recommendations](docs/recommendations.png)
 
 > Traditionally in e-commerce systems, recommendations are based on sales data. For this demonstration, we are displaying a product that is not in the cart.
+
+## Notes
+
+- As a last minute call, debounce on client side is removed. Each click corresponds to a server action. In a production environment, client actions should be polled and sent as a single action with a debounce time. Due to time constraints, this optimization is reverted.
