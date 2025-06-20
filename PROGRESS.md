@@ -12,7 +12,7 @@
 
 ### **✅ Phase 1: Direct UI + FakeStore API Integration** - **COMPLETE**
 1. ✅ **Project Foundation** - **COMPLETE**
-   - ✅ Next.js 14 with TypeScript initialized
+   - ✅ Next.js 15 with TypeScript initialized
    - ✅ Tailwind CSS configured
    - ✅ Project structure established
    - ✅ Fake Store API client skeleton implemented
