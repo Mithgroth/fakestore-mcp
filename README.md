@@ -146,6 +146,7 @@ Login dialog contains ready-to-use accounts for easy testing:
 
 - Product sorting by Rating, Price or Review Count
 - Recommendations:
+  
   ![Recommendations](docs/recommendations.png)
 
 > Traditionally in e-commerce systems, recommendations are based on sales data. For this demonstration, we are displaying a product that is not in the cart.
