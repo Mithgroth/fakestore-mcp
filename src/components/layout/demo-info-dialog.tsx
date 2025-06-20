@@ -111,7 +111,7 @@ export function DemoInfoDialog() {
               <div className="bg-gray-50 p-4 rounded-md">
                 <p className="text-sm font-medium mb-2">Technology Stack:</p>
                 <p className="text-sm text-muted-foreground">
-                  Next.js 14, TypeScript, ShadCN/ui, Tailwind CSS, FakeStore API, MCP TypeScript SDK
+                  Next.js 15, TypeScript, ShadCN/ui, Tailwind CSS, FakeStore API, MCP TypeScript SDK
                 </p>
               </div>
             </CardContent>
