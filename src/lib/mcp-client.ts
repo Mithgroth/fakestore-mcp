@@ -1,7 +1,7 @@
 // MCP Client for FakeStore API operations
 // Browser-compatible client that communicates with MCP server via HTTP
 
-import { Product, User, Cart } from '@/lib/types'
+import { User, Cart, Product } from '@/lib/types'
 
 class MCPClientManager {
   private baseUrl = '/api/mcp'

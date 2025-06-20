@@ -1,7 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react'
-import { Product, CartItem } from '@/lib/types'
+import { CartItem, Product } from '@/lib/types'
 import { useAuth } from '@/lib/auth-context'
 import { mcpClient } from './mcp-client'
 

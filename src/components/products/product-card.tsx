@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Star, Plus, Minus, ShoppingCart } from 'lucide-react'
-import { getCategoryInfoSmall } from '@/lib/categories'
+import { getCategoryInfoSmall } from '@/lib/utils'
 import { useAuth } from '@/lib/auth-context'
 import { useCart } from '@/lib/cart-context'
 

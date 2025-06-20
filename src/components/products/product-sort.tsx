@@ -3,8 +3,9 @@
 import React from 'react'
 import { Button } from '@/components/ui/button'
 import { Star, DollarSign, MessageSquare, ChevronDown, ChevronUp } from 'lucide-react'
+import { SortOption } from '@/lib/utils'
 
-export type SortOption = 'rating-desc' | 'rating-asc' | 'price-desc' | 'price-asc' | 'reviews-desc' | 'reviews-asc' | 'none'
+export type { SortOption }
 
 interface ProductSortProps {
   value: SortOption

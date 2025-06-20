@@ -1,6 +1,41 @@
+import { clsx, type ClassValue } from "clsx"
+import { twMerge } from "tailwind-merge"
 import React from 'react'
 import { Mars, Venus, Gem, Smartphone, Shirt } from 'lucide-react'
 
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+
+// Product sorting utilities
+export type SortOption = 'none' | 'price-asc' | 'price-desc' | 'rating-asc' | 'rating-desc' | 'reviews-asc' | 'reviews-desc'
+
+import { Product } from '@/lib/types'
+
+export function sortProducts(products: Product[], sortOption: SortOption): Product[] {
+  const sorted = [...products]
+  
+  switch (sortOption) {
+    case 'rating-desc':
+      return sorted.sort((a, b) => b.rating.rate - a.rating.rate)
+    case 'rating-asc':
+      return sorted.sort((a, b) => a.rating.rate - b.rating.rate)
+    case 'price-desc':
+      return sorted.sort((a, b) => b.price - a.price)
+    case 'price-asc':
+      return sorted.sort((a, b) => a.price - b.price)
+    case 'reviews-desc':
+      return sorted.sort((a, b) => b.rating.count - a.rating.count)
+    case 'reviews-asc':
+      return sorted.sort((a, b) => a.rating.count - b.rating.count)
+    case 'none':
+      return sorted
+    default:
+      return sorted
+  }
+}
+
+// Category utilities
 export interface CategoryInfo {
   name: string
   displayName: string

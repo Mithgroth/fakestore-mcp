@@ -11,24 +11,13 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { AlertCircle } from 'lucide-react'
-import { getCategoryInfoLarge } from '@/lib/categories'
+import { getCategoryInfoLarge, sortProducts } from '@/lib/utils'
+import { Product } from '@/lib/types'
 import { useScrollSpy } from '@/lib/scroll-spy-context'
 import { SortOption } from '@/components/products/product-sort'
-import { sortProducts } from '@/lib/product-utils'
 import { mcpClient } from '@/lib/mcp-client'
 
-interface Product {
-  id: number
-  title: string
-  price: number
-  description: string
-  category: string
-  image: string
-  rating: {
-    rate: number
-    count: number
-  }
-}
+// Product interface now imported from utils
 
 interface CategoryGroup {
   name: string
