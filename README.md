@@ -2,6 +2,8 @@
 
 **🚀 LIVE DEMO: https://fakestore-mcp.vercel.app**
 
+**🎥 VIDEO EXPLANATION: https://www.youtube.com/watch?v=be9B8M1Ow88**
+
 A complete e-commerce application demonstrating Model Context Protocol (MCP) integration with the FakeStore API. Built with Next.js, TypeScript, and the MCP TypeScript SDK.
 
 - [FakeStore MCP - Model Context Protocol E-commerce Demo](#fakestore-mcp---model-context-protocol-e-commerce-demo)
