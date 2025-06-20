@@ -29,7 +29,7 @@ interface ProductCardProps {
 
 export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const { user } = useAuth()
-  const { items, removeItem, updateQuantity } = useCart()
+  const { items, removeItem, incrementQuantity, decrementQuantity } = useCart()
   const cartItem = items.find(item => item.product.id === product.id)
   const inCart = !!cartItem
 
@@ -51,7 +51,9 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
     if (!user) {
       promptLogin()
     } else if (cartItem) {
-      void updateQuantity(product.id, cartItem.quantity + 1)
+      void incrementQuantity(product.id)
+    } else {
+      onAddToCart?.(product)
     }
   }
 
@@ -60,7 +62,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
       promptLogin()
     } else if (cartItem) {
       if (cartItem.quantity > 1) {
-        void updateQuantity(product.id, cartItem.quantity - 1)
+        void decrementQuantity(product.id)
       } else {
         void removeItem(product.id)
       }

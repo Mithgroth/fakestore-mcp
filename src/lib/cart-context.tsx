@@ -12,6 +12,8 @@ interface CartContextType {
   addItem: (product: Product, quantity?: number) => Promise<void>
   removeItem: (productId: number) => Promise<void>
   updateQuantity: (productId: number, quantity: number) => Promise<void>
+  incrementQuantity: (productId: number) => Promise<void>
+  decrementQuantity: (productId: number) => Promise<void>
   clearCart: () => Promise<void>
 }
 
@@ -160,20 +162,75 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }
 
   const updateQuantity = async (productId: number, quantity: number) => {
-    // Optimistic update - update UI immediately
-    setItems(prev =>
-      prev
+    // Optimistic update - update UI immediately using functional update
+    setItems(prev => {
+      const updated = prev
         .map(item =>
           item.product.id === productId ? { ...item, quantity } : item
         )
         .filter(item => item.quantity > 0)
-    )
+      return updated
+    })
 
     // Schedule server sync if user is logged in
     if (user) {
       pendingUpdatesRef.current.set(productId, {
         productId,
         quantity,
+        timestamp: Date.now()
+      })
+      scheduleSync()
+    }
+  }
+
+  const incrementQuantity = async (productId: number) => {
+    let newQuantity = 1
+    
+    // Optimistic update - update UI immediately using functional update
+    setItems(prev => {
+      const updated = prev.map(item => {
+        if (item.product.id === productId) {
+          newQuantity = item.quantity + 1
+          return { ...item, quantity: newQuantity }
+        }
+        return item
+      })
+      return updated
+    })
+
+    // Schedule server sync if user is logged in
+    if (user) {
+      pendingUpdatesRef.current.set(productId, {
+        productId,
+        quantity: newQuantity,
+        timestamp: Date.now()
+      })
+      scheduleSync()
+    }
+  }
+
+  const decrementQuantity = async (productId: number) => {
+    let newQuantity = 0
+    
+    // Optimistic update - update UI immediately using functional update
+    setItems(prev => {
+      const updated = prev
+        .map(item => {
+          if (item.product.id === productId) {
+            newQuantity = item.quantity - 1
+            return { ...item, quantity: newQuantity }
+          }
+          return item
+        })
+        .filter(item => item.quantity > 0)
+      return updated
+    })
+
+    // Schedule server sync if user is logged in
+    if (user) {
+      pendingUpdatesRef.current.set(productId, {
+        productId,
+        quantity: newQuantity,
         timestamp: Date.now()
       })
       scheduleSync()
@@ -205,7 +262,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   return (
     <CartContext.Provider
-      value={{ items, totalItems, totalPrice, addItem, removeItem, updateQuantity, clearCart }}
+      value={{ items, totalItems, totalPrice, addItem, removeItem, updateQuantity, incrementQuantity, decrementQuantity, clearCart }}
     >
       {children}
     </CartContext.Provider>
