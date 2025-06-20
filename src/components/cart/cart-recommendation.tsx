@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useCart } from '@/lib/cart-context'
 import { mcpClient } from '@/lib/mcp-client' 
 import { Product } from '@/lib/types'
@@ -16,8 +16,18 @@ export function CartRecommendation({ className }: CartRecommendationProps) {
   const [recommendation, setRecommendation] = useState<Product | null>(null)
   const [loading, setLoading] = useState(true)
   const [addingToCart, setAddingToCart] = useState(false)
+  const previousProductIdsRef = useRef<Set<number>>(new Set())
 
   useEffect(() => {
+    const currentProductIds = new Set(items.map(item => item.product.id))
+    const previousProductIds = previousProductIdsRef.current
+    
+    // Check if a new product was added (not just quantity changes or removals)
+    const hasNewProduct = Array.from(currentProductIds).some(id => !previousProductIds.has(id))
+    
+    // Update the ref for next comparison
+    previousProductIdsRef.current = currentProductIds
+    
     const fetchRecommendation = async () => {
       try {
         setLoading(true)
@@ -28,18 +38,17 @@ export function CartRecommendation({ className }: CartRecommendationProps) {
           return
         }
 
-        // Get product IDs already in cart
-        const cartProductIds = new Set(items.map(item => item.product.id))
-        
         // Filter products not in cart
         const availableProducts = result.products.filter(
-          product => !cartProductIds.has(product.id)
+          product => !currentProductIds.has(product.id)
         )
 
         // Select a random product from available ones
         if (availableProducts.length > 0) {
           const randomIndex = Math.floor(Math.random() * availableProducts.length)
           setRecommendation(availableProducts[randomIndex])
+        } else {
+          setRecommendation(null)
         }
       } catch (error) {
         console.error('Failed to fetch recommendation:', error)
@@ -48,10 +57,13 @@ export function CartRecommendation({ className }: CartRecommendationProps) {
       }
     }
 
-    // Only fetch if we have items in cart (to show recommendations)
-    if (items.length > 0) {
+    // Only fetch recommendations when:
+    // 1. We have items in cart AND
+    // 2. A new product was added (not just quantity changes or removals)
+    if (items.length > 0 && (hasNewProduct || previousProductIds.size === 0)) {
       fetchRecommendation()
-    } else {
+    } else if (items.length === 0) {
+      // Clear recommendation when cart is empty
       setLoading(false)
       setRecommendation(null)
     }

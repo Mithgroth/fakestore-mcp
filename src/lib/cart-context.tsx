@@ -104,7 +104,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
           product: item.product, 
           quantity: item.quantity 
         }))
-        setItems(serverItems)
+        
+        // Only update state if server data is different from current state
+        // to prevent unnecessary re-renders and recommendation re-generations
+        setItems(current => {
+          if (current.length !== serverItems.length) {
+            return serverItems
+          }
+          
+          // Check if any items are different
+          const isDifferent = current.some(currentItem => {
+            const serverItem = serverItems.find(si => si.product.id === currentItem.product.id)
+            return !serverItem || serverItem.quantity !== currentItem.quantity
+          })
+          
+          return isDifferent ? serverItems : current
+        })
       }
     } catch (err) {
       console.error('Failed to sync cart updates to server:', err)
